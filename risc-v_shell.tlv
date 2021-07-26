@@ -47,16 +47,16 @@
    // YOUR CODE HERE
    // ...
    
-   // Program counter
+   // Program counter - 1
    $next_pc[31:0] = $reset ? 0 : $pc + 4;
    $pc[31:0] = >>1$next_pc;
    
-   // Instruction memory
+   // Instruction memory - 2
    // There is no read enable. It is less power efficient than a real CPU.
    // This would be better as SRAM.
    `READONLY_MEM($pc, $$instr[31:0]);
    
-   // Decode logic
+   // Decode logic - 3
    // The '==?' operator ignores 'x's in the test.
    $is_u_instr = $instr[6:2] ==? 5'b0X101;
    
@@ -74,7 +74,7 @@
    
    $is_j_instr = $instr[6:2] ==? 5'b11011;
    
-   // Instruction fields
+   // Instruction fields 
    $rs1[4:0] = $instr[19:15];
    $rs2[4:0] = $instr[24:20];
    $funct3[2:0] = $instr[14:12];
@@ -96,10 +96,21 @@
    $rd_valid = $is_r_instr || $is_u_instr || $is_u_instr || $is_j_instr;
    $imm_valid = ~$is_r_instr;
 
+   // Instruction
 
+   $dec_bits[10:0] = {$instr[30], $funct3, $opcode};
+   
+   $is_beq =  $dec_bits ==? 11'bX_000_1100011;
+   $is_bne =  $dec_bits ==? 11'bX_001_1100011;
+   $is_blt =  $dec_bits ==? 11'bX_100_1100011;
+   $is_bge =  $dec_bits ==? 11'bX_101_1100011;
+   $is_bltu = $dec_bits ==? 11'bX_110_1100011;
+   $is_bgeu = $dec_bits ==? 11'bX_111_1100011;
+   $is_addi = $dec_bits ==? 11'bX_000_0010011;
+   $is_add =  $dec_bits ==? 11'bX_000_0110011;
 
    `BOGUS_USE($rs1 $rs1_valid $rs2 $rs2_valid $funct3 $funct3_valid $funct7 $funct7_valid $imm $imm_valid $rd $rd_valid $opcode)
-   
+   `BOGUS_USE($is_beq $is_bne $is_blt $is_bge $is_bltu $is_bgeu $is_addi $is_add) 
    // Assert these to end simulation (before Makerchip cycle limit).
    *passed = 1'b0;
    *failed = *cyc_cnt > M4_MAX_CYC;
